@@ -4,10 +4,9 @@ import { SetStateAction } from "react";
 export type MenuProps = {
   joinCode: string;
   setJoinCode: React.Dispatch<SetStateAction<string>>;
-  setPage: React.Dispatch<SetStateAction<string>>;
 };
 
-export const Menu = ({ joinCode, setJoinCode, setPage }: MenuProps) => {
+export const Menu = ({ joinCode, setJoinCode }: MenuProps) => {
   return (
     <main>
       <div>
