@@ -1,5 +1,7 @@
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
+import { useRouter } from "next/router";
+import { useState } from "react";
 
 function SafeHydrate({ children }: any) {
   return (
@@ -10,9 +12,24 @@ function SafeHydrate({ children }: any) {
 }
 
 export default function App({ Component, pageProps }: AppProps) {
+  const [userName, setUserName] = useState("");
+  const [roomName, setRoomName] = useState("");
+  const router = useRouter();
+
+  const handleLogin = (event: Event) => {
+    event.preventDefault();
+    router.push(`/room/${roomName}`);
+  };
   return (
-    <SafeHydrate>
-      <Component {...pageProps} />
-    </SafeHydrate>
+    <Component
+      handleCredChange={(userName: string, roomName: string) => {
+        setUserName(userName);
+        setRoomName(roomName);
+      }}
+      userName={userName}
+      roomName={roomName}
+      handleLogin={handleLogin}
+      {...pageProps}
+    />
   );
 }
