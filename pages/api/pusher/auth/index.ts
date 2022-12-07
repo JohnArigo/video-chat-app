@@ -5,7 +5,7 @@ import { pusher } from "../../../../utils/pusher";
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
-): Promise<Pusher.AuthResponse | void> {
+): Promise<Pusher | void> {
   const { socket_id, channel_name, username } = req.body;
   const randomString = Math.random().toString(36).slice(2);
 
