@@ -1,7 +1,6 @@
 import Head from "next/head";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import styles from "../styles/Home.module.css";
 
 interface Props {
   handleCredChange: (userName: string, roomName: string) => void;
@@ -17,22 +16,22 @@ export default function Home({ handleCredChange, handleLogin }: Props) {
   }, [roomName, userName, handleCredChange]);
 
   return (
-    <div className={styles.container}>
-      <form className={styles.main} onSubmit={handleLogin}>
+    <div className="w-screen h-screen ">
+      <form className="" onSubmit={handleLogin}>
         <h1>Lets join a room!</h1>
         <input
           onChange={(e) => setUserName(e.target.value)}
           value={userName}
-          className={styles["room-name"]}
+          className=""
           placeholder="Enter Username"
         />
         <input
           onChange={(e) => setRoomName(e.target.value)}
           value={roomName}
-          className={styles["room-name"]}
+          className=""
           placeholder="Enter Room Name"
         />
-        <button type="submit" className={styles["join-room"]}>
+        <button type="submit" className="">
           Join Room
         </button>
       </form>

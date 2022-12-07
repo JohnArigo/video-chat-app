@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import Pusher, { Members, PresenceChannel } from "pusher-js";
 import { useEffect, useRef, useState } from "react";
-import styles from "../../styles/Room.module.css";
 import { ICE_SERVERS } from "../../utils/iceServers";
 
 interface Props {
@@ -31,6 +30,10 @@ export default function Room({ userName, roomName }: Props) {
       },
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
     });
+    channelRef.current = pusherRef.current.subscribe(
+      `presence-${roomName}`
+    ) as PresenceChannel;
+
     channelRef?.current?.bind(
       "pusher:subscription_succeeded",
       (members: Members) => {
@@ -87,7 +90,7 @@ export default function Room({ userName, roomName }: Props) {
         video: { width: 1280, height: 720 },
       })
       .then((stream) => {
-        /* use the stream */
+        /* store reference to the stream and provide it to the video element */
         userStream.current = stream;
         userVideo.current!.srcObject = stream;
         userVideo.current!.onloadedmetadata = () => {
@@ -95,7 +98,6 @@ export default function Room({ userName, roomName }: Props) {
         };
         if (!host.current) {
           // the 2nd peer joining will tell to host they are ready
-          console.log("triggering client ready");
           channelRef.current!.trigger("client-ready", {});
         }
       })
@@ -199,14 +201,14 @@ export default function Room({ userName, roomName }: Props) {
     // Let's the server know that user has left the room.
 
     // Stops sending all tracks of User.
-    if (userVideo.current!.srcObject) {
-      (userVideo.current!.srcObject as MediaStream)
+    if (userVideo.current?.srcObject) {
+      (userVideo.current?.srcObject as MediaStream)
         .getTracks()
         .forEach((track) => track.stop());
     }
     // Stops receiving all tracks from Peer.
-    if (partnerVideo.current!.srcObject) {
-      (partnerVideo.current!.srcObject as MediaStream)
+    if (partnerVideo.current?.srcObject) {
+      (partnerVideo.current?.srcObject as MediaStream)
         .getTracks()
         .forEach((track) => track.stop());
     }
@@ -222,7 +224,7 @@ export default function Room({ userName, roomName }: Props) {
     router.push("/");
   };
   const toggleMediaStream = (type: "video" | "audio", state: boolean) => {
-    userStream.current!.getTracks().forEach((track) => {
+    userStream.current?.getTracks().forEach((track) => {
       if (track.kind === type) {
         track.enabled = !state;
       }
@@ -238,27 +240,65 @@ export default function Room({ userName, roomName }: Props) {
     toggleMediaStream("video", cameraActive);
     setCameraActive((prev) => !prev);
   };
-
+  console.log(partnerVideo);
   return (
-    <div>
-      <div className={styles["videos-container"]}>
-        <div className={styles["video-container"]}>
-          <video autoPlay ref={userVideo} muted />
-          <div>
-            <button onClick={toggleMic} type="button">
+    <div className="w-screen h-screen bg-primary flex justify-center items-center">
+      <div className="bg-secondary w-full h-full flex flex-col items-center">
+        <div className="sm:w-11/12 w-full sm:h-2/3 h-full flex justify-center items-center sm:mt-5">
+          {partnerVideo.current === null ? (
+            <div className="w-full h-full flex flex-col justify-center items-center">
+              <h1 className="w-full text-center">Awaiting users to join</h1>
+              <video
+                autoPlay
+                ref={userVideo}
+                muted
+                className="w-full sm:w-3/4 h-full"
+              />
+            </div>
+          ) : (
+            <video
+              autoPlay
+              ref={partnerVideo}
+              className="sm:w-3/4 w-full h-full"
+            />
+          )}
+        </div>
+
+        <div className="w-full fixed sm:w-96 h-16 sm:h-24 bottom-0 flex justify-between items-center rounded-lg bg-gray-100 bg-opacity-50">
+          <div className="w-1/2 flex justify-around items-center ml-5">
+            <button
+              className="rounded-xl bg-white pl-1 pr-1 mr-2 text-black"
+              onClick={toggleMic}
+              type="button"
+            >
               {micActive ? "Mute Mic" : "UnMute Mic"}
             </button>
-            <button onClick={leaveRoom} type="button">
-              Leave
-            </button>
-            <button onClick={toggleCamera} type="button">
+            <button
+              className="rounded-xl bg-white pl-1 pr-1 text-black"
+              onClick={toggleCamera}
+              type="button"
+            >
               {cameraActive ? "Stop Camera" : "Start Camera"}
             </button>
           </div>
+          <button
+            className="mr-5 text-red-700"
+            onClick={leaveRoom}
+            type="button"
+          >
+            Leave
+          </button>
         </div>
-        <div className={styles["video-container"]}>
-          <video autoPlay ref={partnerVideo} />
-        </div>
+        {partnerVideo.current === null ? null : (
+          <div className="w-full fixed h-48 bottom-20 sm:bottom-0 sm:relative sm:h-1/3 flex justify-end items-center">
+            <video
+              autoPlay
+              ref={userVideo}
+              muted
+              className="w-36 sm:w-56 h-full"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
