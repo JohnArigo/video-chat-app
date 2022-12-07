@@ -16,22 +16,27 @@ export default function Home({ handleCredChange, handleLogin }: Props) {
   }, [roomName, userName, handleCredChange]);
 
   return (
-    <div className="w-screen h-screen ">
-      <form className="" onSubmit={handleLogin}>
-        <h1>Lets join a room!</h1>
+    <div className="w-screen h-screen flex justify-center items-center">
+      <form className="w-96 h-96 flex flex-col" onSubmit={handleLogin}>
+        <h1 className="text-center mb-5">Lets join a room!</h1>
         <input
           onChange={(e) => setUserName(e.target.value)}
           value={userName}
-          className=""
+          className="mb-3 h-10"
           placeholder="Enter Username"
+          required
         />
         <input
           onChange={(e) => setRoomName(e.target.value)}
           value={roomName}
-          className=""
+          className="mb-3 h-10"
           placeholder="Enter Room Name"
+          required
         />
-        <button type="submit" className="">
+        <button
+          type="submit"
+          className="bg-white bg-opacity-50 h-8 rounded-full hover:bg-green-600 active:bg-green-600 focus:outline-none focus:ring focus:ring-green-200"
+        >
           Join Room
         </button>
       </form>
