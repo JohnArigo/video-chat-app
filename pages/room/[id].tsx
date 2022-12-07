@@ -11,14 +11,17 @@ interface Props {
 export default function Room({ userName, roomName }: Props) {
   const [micActive, setMicActive] = useState(true);
   const [cameraActive, setCameraActive] = useState(true);
-  const host = useRef(false);
   const router = useRouter();
+
+  const host = useRef(false);
   // Pusher specific refs
   const pusherRef = useRef<Pusher>();
   const channelRef = useRef<PresenceChannel>();
+
   // Webrtc refs
   const rtcConnection = useRef<RTCPeerConnection | null>();
   const userStream = useRef<MediaStream>();
+
   const userVideo = useRef<HTMLVideoElement>(null);
   const partnerVideo = useRef<HTMLVideoElement>(null);
 
@@ -33,7 +36,7 @@ export default function Room({ userName, roomName }: Props) {
     channelRef.current = pusherRef.current.subscribe(
       `presence-${roomName}`
     ) as PresenceChannel;
-
+    // when a users subscribe
     channelRef?.current?.bind(
       "pusher:subscription_succeeded",
       (members: Members) => {
@@ -45,17 +48,18 @@ export default function Room({ userName, roomName }: Props) {
         // example only supports 2 users per call
         if (members.count > 2) {
           // 3+ person joining will get sent back home
-          // Can handle however you'd like
+          // Can handle this however you'd like
           router.push("/");
         }
         handleRoomJoined();
       }
     );
+
     // when a member leaves the chat
-    channelRef?.current?.bind("pusher:member_removed", handlePeerLeaving);
-    channelRef?.current?.bind("client-ready", () => {
-      initiateCall();
+    channelRef?.current?.bind("pusher:member_removed", () => {
+      handlePeerLeaving();
     });
+
     channelRef?.current?.bind(
       "client-offer",
       (offer: RTCSessionDescriptionInit) => {
@@ -65,6 +69,13 @@ export default function Room({ userName, roomName }: Props) {
         }
       }
     );
+
+    // When the second peer tells host they are ready to start the call
+    // This happens after the second peer has grabbed their media
+    channelRef.current.bind("client-ready", () => {
+      initiateCall();
+    });
+
     channelRef?.current?.bind(
       "client-answer",
       (answer: RTCSessionDescriptionInit) => {
@@ -74,6 +85,7 @@ export default function Room({ userName, roomName }: Props) {
         }
       }
     );
+
     channelRef?.current?.bind(
       "client-ice-candidate",
       (iceCandidate: RTCIceCandidate) => {
@@ -81,6 +93,11 @@ export default function Room({ userName, roomName }: Props) {
         handlerNewIceCandidateMsg(iceCandidate);
       }
     );
+
+    return () => {
+      if (pusherRef.current)
+        pusherRef.current.unsubscribe(`presence-${roomName}`);
+    };
   }, [userName, roomName]);
 
   const handleRoomJoined = () => {
@@ -106,6 +123,20 @@ export default function Room({ userName, roomName }: Props) {
         console.log(err);
       });
   };
+
+  const createPeerConnection = () => {
+    // We create a RTC Peer Connection
+    const connection = new RTCPeerConnection(ICE_SERVERS);
+
+    // We implement our onicecandidate method for when we received a ICE candidate from the STUN server
+    connection.onicecandidate = handleICECandidateEvent;
+
+    // We implement our onTrack method for when we receive tracks
+    connection.ontrack = handleTrackEvent;
+    connection.onicecandidateerror = (e) => console.log(e);
+    return connection;
+  };
+
   const initiateCall = () => {
     if (host.current) {
       rtcConnection.current = createPeerConnection();
@@ -127,18 +158,7 @@ export default function Room({ userName, roomName }: Props) {
         });
     }
   };
-  const createPeerConnection = () => {
-    // We create a RTC Peer Connection
-    const connection = new RTCPeerConnection(ICE_SERVERS);
 
-    // We implement our onicecandidate method for when we received a ICE candidate from the STUN server
-    connection.onicecandidate = handleICECandidateEvent;
-
-    // We implement our onTrack method for when we receive tracks
-    connection.ontrack = handleTrackEvent;
-    connection.onicecandidateerror = (e) => console.log(e);
-    return connection;
-  };
   const handleReceivedOffer = (offer: RTCSessionDescriptionInit) => {
     rtcConnection.current = createPeerConnection();
     userStream.current?.getTracks().forEach((track) => {
@@ -169,6 +189,7 @@ export default function Room({ userName, roomName }: Props) {
       channelRef.current?.trigger("client-ice-candidate", event.candidate);
     }
   };
+
   const handlerNewIceCandidateMsg = (incoming: RTCIceCandidate) => {
     // We cast the incoming candidate to RTCIceCandidate
     const candidate = new RTCIceCandidate(incoming);
@@ -176,41 +197,48 @@ export default function Room({ userName, roomName }: Props) {
       .current!.addIceCandidate(candidate)
       .catch((error) => console.log(error));
   };
+
   const handleTrackEvent = (event: RTCTrackEvent) => {
     partnerVideo.current!.srcObject = event.streams[0];
   };
+
+  const toggleMediaStream = (type: "video" | "audio", state: boolean) => {
+    userStream.current?.getTracks().forEach((track) => {
+      if (track.kind === type) {
+        track.enabled = !state;
+      }
+    });
+  };
+
   const handlePeerLeaving = () => {
     host.current = true;
-    // Stops receiving all track of Peer.
-
     if (partnerVideo.current?.srcObject) {
       (partnerVideo.current.srcObject as MediaStream)
         .getTracks()
-        .forEach((track) => track.stop());
+        .forEach((track) => track.stop()); // Stops receiving all track of Peer.
+    }
 
-      // Safely closes the existing connection established with the peer who left.
-      if (rtcConnection.current) {
-        rtcConnection.current.ontrack = null;
-        rtcConnection.current.onicecandidate = null;
-        rtcConnection.current.close();
-        rtcConnection.current = null;
-      }
+    // Safely closes the existing connection established with the peer who left.
+    if (rtcConnection.current) {
+      rtcConnection.current.ontrack = null;
+      rtcConnection.current.onicecandidate = null;
+      rtcConnection.current.close();
+      rtcConnection.current = null;
     }
   };
-  const leaveRoom = () => {
-    // Let's the server know that user has left the room.
 
-    // Stops sending all tracks of User.
+  const leaveRoom = () => {
+    // socketRef.current.emit('leave', roomName); // Let's the server know that user has left the room.
+
     if (userVideo.current?.srcObject) {
       (userVideo.current?.srcObject as MediaStream)
         .getTracks()
-        .forEach((track) => track.stop());
+        .forEach((track) => track.stop()); // Stops sending all tracks of User.
     }
-    // Stops receiving all tracks from Peer.
     if (partnerVideo.current?.srcObject) {
       (partnerVideo.current?.srcObject as MediaStream)
         .getTracks()
-        .forEach((track) => track.stop());
+        .forEach((track) => track.stop()); // Stops receiving all tracks from Peer.
     }
 
     // Checks if there is peer on the other side and safely closes the existing connection established with the peer.
@@ -223,13 +251,6 @@ export default function Room({ userName, roomName }: Props) {
 
     router.push("/");
   };
-  const toggleMediaStream = (type: "video" | "audio", state: boolean) => {
-    userStream.current?.getTracks().forEach((track) => {
-      if (track.kind === type) {
-        track.enabled = !state;
-      }
-    });
-  };
 
   const toggleMic = () => {
     toggleMediaStream("audio", micActive);
@@ -240,7 +261,6 @@ export default function Room({ userName, roomName }: Props) {
     toggleMediaStream("video", cameraActive);
     setCameraActive((prev) => !prev);
   };
-  console.log(partnerVideo);
   return (
     <div className="w-screen h-screen bg-primary flex justify-center items-center">
       <div className="bg-secondary w-full h-full flex flex-col items-center">
