@@ -104,7 +104,7 @@ export default function Room({ userName, roomName }: Props) {
     navigator.mediaDevices
       .getUserMedia({
         audio: true,
-        video: { width: 1280, height: 720 },
+        video: true,
       })
       .then((stream) => {
         /* store reference to the stream and provide it to the video element */
@@ -127,10 +127,8 @@ export default function Room({ userName, roomName }: Props) {
   const createPeerConnection = () => {
     // We create a RTC Peer Connection
     const connection = new RTCPeerConnection(ICE_SERVERS);
-
     // We implement our onicecandidate method for when we received a ICE candidate from the STUN server
     connection.onicecandidate = handleICECandidateEvent;
-
     // We implement our onTrack method for when we receive tracks
     connection.ontrack = handleTrackEvent;
     connection.onicecandidateerror = (e) => console.log(e);
@@ -199,7 +197,9 @@ export default function Room({ userName, roomName }: Props) {
   };
 
   const handleTrackEvent = (event: RTCTrackEvent) => {
-    partnerVideo.current!.srcObject = event.streams[0];
+    if (partnerVideo.current?.srcObject) {
+      partnerVideo.current.srcObject = event.streams[0];
+    }
   };
 
   const toggleMediaStream = (type: "video" | "audio", state: boolean) => {
@@ -269,6 +269,7 @@ export default function Room({ userName, roomName }: Props) {
             <div className="w-full h-full flex flex-col justify-center items-center">
               <h1 className="w-full text-center">Awaiting users to join</h1>
               <video
+                playsInline
                 autoPlay
                 ref={userVideo}
                 muted
