@@ -24,7 +24,7 @@ export default function Room({ userName, roomName }: Props) {
 
   const userVideo = useRef<HTMLVideoElement>(null);
   const partnerVideo = useRef<HTMLVideoElement>(null);
-
+  const [initial, setInitial] = useState(true);
   useEffect(() => {
     pusherRef.current = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
       authEndpoint: "/api/pusher/auth",
@@ -57,7 +57,7 @@ export default function Room({ userName, roomName }: Props) {
 
     // when a member leaves the chat
     channelRef?.current?.bind("pusher:member_removed", () => {
-      handlePeerLeaving();
+      userExit();
     });
 
     channelRef?.current?.bind(
@@ -197,12 +197,15 @@ export default function Room({ userName, roomName }: Props) {
   };
 
   const handleTrackEvent = (event: RTCTrackEvent) => {
-    if (partnerVideo.current?.srcObject) {
-      partnerVideo.current.srcObject = event.streams[0];
+    if (!partnerVideo?.current?.srcObject) {
+      partnerVideo.current!.srcObject = null;
     }
+    setInitial(false);
+    partnerVideo.current!.srcObject = event.streams[0]!;
+    //partnerVideo.current!.play();
   };
 
-  const toggleMediaStream = (type: "video" | "audio", state: boolean) => {
+  const switchMediaStream = (type: "video" | "audio", state: boolean) => {
     userStream.current?.getTracks().forEach((track) => {
       if (track.kind === type) {
         track.enabled = !state;
@@ -210,7 +213,7 @@ export default function Room({ userName, roomName }: Props) {
     });
   };
 
-  const handlePeerLeaving = () => {
+  const userExit = () => {
     host.current = true;
     if (partnerVideo.current?.srcObject) {
       (partnerVideo.current.srcObject as MediaStream)
@@ -227,7 +230,7 @@ export default function Room({ userName, roomName }: Props) {
     }
   };
 
-  const leaveRoom = () => {
+  const exitRoom = () => {
     // socketRef.current.emit('leave', roomName); // Let's the server know that user has left the room.
 
     if (userVideo.current?.srcObject) {
@@ -252,20 +255,21 @@ export default function Room({ userName, roomName }: Props) {
     router.push("/");
   };
 
-  const toggleMic = () => {
-    toggleMediaStream("audio", micActive);
+  const micSwitch = () => {
+    switchMediaStream("audio", micActive);
     setMicActive((prev) => !prev);
   };
 
-  const toggleCamera = () => {
-    toggleMediaStream("video", cameraActive);
+  const camSwitch = () => {
+    switchMediaStream("video", cameraActive);
     setCameraActive((prev) => !prev);
   };
+
   return (
     <div className="w-screen h-screen bg-primary flex justify-center items-center">
       <div className="bg-secondary w-full h-full flex flex-col items-center">
         <div className="sm:w-11/12 w-full sm:h-2/3 h-full flex justify-center items-center sm:mt-5">
-          {partnerVideo.current === null ? (
+          {host.current && initial ? (
             <div className="w-full h-full flex flex-col justify-center items-center">
               <h1 className="w-full text-center">Awaiting users to join</h1>
               <video
@@ -289,14 +293,14 @@ export default function Room({ userName, roomName }: Props) {
           <div className="w-1/2 flex justify-around items-center ml-5">
             <button
               className="rounded-xl bg-white pl-1 pr-1 mr-2 text-black"
-              onClick={toggleMic}
+              onClick={micSwitch}
               type="button"
             >
               {micActive ? "Mute Mic" : "UnMute Mic"}
             </button>
             <button
               className="rounded-xl bg-white pl-1 pr-1 text-black"
-              onClick={toggleCamera}
+              onClick={camSwitch}
               type="button"
             >
               {cameraActive ? "Stop Camera" : "Start Camera"}
@@ -304,13 +308,13 @@ export default function Room({ userName, roomName }: Props) {
           </div>
           <button
             className="mr-5 text-red-700"
-            onClick={leaveRoom}
+            onClick={exitRoom}
             type="button"
           >
             Leave
           </button>
         </div>
-        {partnerVideo.current === null ? null : (
+        {host.current && initial ? null : (
           <div className="w-full fixed h-48 bottom-20 sm:bottom-0 sm:relative sm:h-1/3 flex justify-end items-center">
             <video
               autoPlay
