@@ -1,7 +1,14 @@
 import { useRouter } from "next/router";
 import Pusher, { Members, PresenceChannel } from "pusher-js";
 import { useEffect, useRef, useState } from "react";
+import Modal from "../../components/modal";
 import { ICE_SERVERS } from "../../utils/iceServers";
+import {
+  IconCameraOff,
+  IconCamera,
+  IconMicrophone,
+  IconMicrophoneOff,
+} from "@tabler/icons";
 
 interface Props {
   userName: string;
@@ -11,6 +18,7 @@ interface Props {
 export default function Room({ userName, roomName }: Props) {
   const [micActive, setMicActive] = useState(true);
   const [cameraActive, setCameraActive] = useState(true);
+  const [clicked, setClicked] = useState(false);
   const router = useRouter();
 
   const host = useRef(false);
@@ -24,7 +32,7 @@ export default function Room({ userName, roomName }: Props) {
 
   const userVideo = useRef<HTMLVideoElement>(null);
   const partnerVideo = useRef<HTMLVideoElement>(null);
-  const [initial, setInitial] = useState(true);
+
   useEffect(() => {
     pusherRef.current = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
       authEndpoint: "/api/pusher/auth",
@@ -98,7 +106,7 @@ export default function Room({ userName, roomName }: Props) {
       if (pusherRef.current)
         pusherRef.current.unsubscribe(`presence-${roomName}`);
     };
-  }, [userName, roomName]);
+  }, [userName, roomName, clicked]);
 
   const handleRoomJoined = () => {
     navigator.mediaDevices
@@ -200,9 +208,8 @@ export default function Room({ userName, roomName }: Props) {
     if (!partnerVideo?.current?.srcObject) {
       partnerVideo.current!.srcObject = null;
     }
-    setInitial(false);
+
     partnerVideo.current!.srcObject = event.streams[0]!;
-    //partnerVideo.current!.play();
   };
 
   const switchMediaStream = (type: "video" | "audio", state: boolean) => {
@@ -231,8 +238,6 @@ export default function Room({ userName, roomName }: Props) {
   };
 
   const exitRoom = () => {
-    // socketRef.current.emit('leave', roomName); // Let's the server know that user has left the room.
-
     if (userVideo.current?.srcObject) {
       (userVideo.current?.srcObject as MediaStream)
         .getTracks()
@@ -259,7 +264,7 @@ export default function Room({ userName, roomName }: Props) {
     switchMediaStream("audio", micActive);
     setMicActive((prev) => !prev);
   };
-
+  console.log(micActive);
   const camSwitch = () => {
     switchMediaStream("video", cameraActive);
     setCameraActive((prev) => !prev);
@@ -269,54 +274,29 @@ export default function Room({ userName, roomName }: Props) {
     <div className="w-screen h-screen bg-primary flex justify-center items-center">
       <div className="bg-secondary w-full h-full flex flex-col items-center">
         <div className="sm:w-11/12 w-full sm:h-2/3 h-full flex justify-center items-center sm:mt-5">
-          {host.current && initial ? (
-            <div className="w-full h-full flex flex-col justify-center items-center">
-              <h1 className="w-full text-center">Awaiting users to join</h1>
+          <video
+            autoPlay
+            ref={partnerVideo}
+            className="sm:w-3/4 w-full h-full"
+          />
+        </div>
+
+        {clicked ? (
+          <Modal
+            Children={
               <video
-                playsInline
                 autoPlay
                 ref={userVideo}
                 muted
-                className="w-full sm:w-3/4 h-full"
+                className="w-full sm:w-2/3 h-full"
               />
-            </div>
-          ) : (
+            }
+            setClicked={setClicked}
+          />
+        ) : (
+          <div className="w-full h-48 sm:h-1/3 flex justify-end items-center">
             <video
-              autoPlay
-              ref={partnerVideo}
-              className="sm:w-3/4 w-full h-full"
-            />
-          )}
-        </div>
-
-        <div className="w-full fixed sm:w-96 h-16 sm:h-24 bottom-0 flex justify-between items-center rounded-lg bg-gray-100 bg-opacity-50">
-          <div className="w-1/2 flex justify-around items-center ml-5">
-            <button
-              className="rounded-xl bg-white pl-1 pr-1 mr-2 text-black"
-              onClick={micSwitch}
-              type="button"
-            >
-              {micActive ? "Mute Mic" : "UnMute Mic"}
-            </button>
-            <button
-              className="rounded-xl bg-white pl-1 pr-1 text-black"
-              onClick={camSwitch}
-              type="button"
-            >
-              {cameraActive ? "Stop Camera" : "Start Camera"}
-            </button>
-          </div>
-          <button
-            className="mr-5 text-red-700"
-            onClick={exitRoom}
-            type="button"
-          >
-            Leave
-          </button>
-        </div>
-        {host.current && initial ? null : (
-          <div className="w-full fixed h-48 bottom-20 sm:bottom-0 sm:relative sm:h-1/3 flex justify-end items-center">
-            <video
+              onClick={() => setClicked(true)}
               autoPlay
               ref={userVideo}
               muted
@@ -324,6 +304,36 @@ export default function Room({ userName, roomName }: Props) {
             />
           </div>
         )}
+        <div className="w-full sm:w-96 mt-10 mb-2 sm:h-24 h-16 flex justify-between items-center rounded-lg bg-gray-100 bg-opacity-50">
+          <div className="w-1/2 flex justify-around items-center ml-2">
+            <button
+              className="rounded-xl p-5 mr-2 text-black hover:bg-white hover:bg-opacity-50"
+              onClick={micSwitch}
+            >
+              {micActive ? (
+                <IconMicrophoneOff size={25} />
+              ) : (
+                <IconMicrophone size={25} />
+              )}
+            </button>
+            <button
+              className="rounded-xl hover:bg-white hover:bg-opacity-50 p-5 text-black"
+              onClick={camSwitch}
+            >
+              {cameraActive ? (
+                <IconCameraOff size={25} />
+              ) : (
+                <IconCamera size={25} />
+              )}
+            </button>
+          </div>
+          <button
+            className="mr-5 text-white bg-red-500 px-7 py-5 rounded-xl hover:bg-red-700"
+            onClick={exitRoom}
+          >
+            Leave
+          </button>
+        </div>
       </div>
     </div>
   );
