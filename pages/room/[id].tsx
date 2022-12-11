@@ -32,6 +32,7 @@ export default function Room({ userName, roomName }: Props) {
 
   const userVideo = useRef<HTMLVideoElement>(null);
   const partnerVideo = useRef<HTMLVideoElement>(null);
+  const partnerTwoVideo = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     pusherRef.current = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
@@ -54,7 +55,7 @@ export default function Room({ userName, roomName }: Props) {
         }
 
         // example only supports 2 users per call
-        if (members.count > 2) {
+        if (members.count > 3) {
           // 3+ person joining will get sent back home
           // Can handle this however you'd like
           router.push("/");
@@ -204,11 +205,11 @@ export default function Room({ userName, roomName }: Props) {
       .catch((error) => console.log(error));
   };
 
+  //check this to add new video/tracks for multiple users
   const handleTrackEvent = (event: RTCTrackEvent) => {
     if (!partnerVideo?.current?.srcObject) {
       partnerVideo.current!.srcObject = null;
     }
-
     partnerVideo.current!.srcObject = event.streams[0]!;
   };
 
@@ -304,6 +305,13 @@ export default function Room({ userName, roomName }: Props) {
             />
           </div>
         )}
+        {/* <video
+          onClick={() => setClicked(true)}
+          autoPlay
+          ref={partnerTwoVideo}
+          muted
+          className="w-36 sm:w-56 h-full"
+        /> */}
         <div className="w-full sm:w-96 mt-10 mb-2 sm:h-24 h-16 flex justify-between items-center rounded-lg bg-gray-100 bg-opacity-50">
           <div className="w-1/2 flex justify-around items-center ml-2">
             <button
