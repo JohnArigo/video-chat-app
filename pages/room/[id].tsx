@@ -64,11 +64,13 @@ export default function Room({ userName, roomName }: Props) {
       }
     );
 
-    // when a member leaves the chat
+    // allows user to exit the room
+    //pUsher will call member_removed event
     channelRef?.current?.bind("pusher:member_removed", () => {
       userExit();
     });
 
+    //connection offer by the host to new member joining
     channelRef?.current?.bind(
       "client-offer",
       (offer: RTCSessionDescriptionInit) => {
@@ -85,6 +87,7 @@ export default function Room({ userName, roomName }: Props) {
       initiateCall();
     });
 
+    //answers offer from host
     channelRef?.current?.bind(
       "client-answer",
       (answer: RTCSessionDescriptionInit) => {
@@ -110,6 +113,7 @@ export default function Room({ userName, roomName }: Props) {
   }, [userName, roomName, clicked]);
 
   const handleRoomJoined = () => {
+    //get users camera and audio
     navigator.mediaDevices
       .getUserMedia({
         audio: true,
