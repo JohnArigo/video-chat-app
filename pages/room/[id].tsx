@@ -280,7 +280,7 @@ export default function Room({ userName, roomName }: Props) {
   useEffect(() => {
     partnerVideo?.current?.play();
     userVideo?.current?.play();
-  }, []);
+  }, [partnerVideo, userVideo]);
 
   return (
     <div className="w-screen h-screen bg-primary flex justify-center items-center">
