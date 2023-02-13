@@ -331,15 +331,12 @@ export default function Room({ userName, roomName }: Props) {
       ) : null}
       <div className="bg-secondary w-full h-full flex flex-col items-center overflow-y-clip">
         <div className="sm:w-11/12 w-full sm:h-2/3 h-full flex justify-center items-center sm:mt-5 overflow-y-clip">
-          {/* <video
+          <video
             autoPlay
             playsInline
             ref={partnerVideo}
             className="sm:w-3/4 w-screen h-screen flex items-center justify-center"
-          /> */}
-          <div className="bg-red-200 sm:w-3/4 w-screen h-screen flex items-center justify-center">
-            Hello
-          </div>
+          />
         </div>
 
         {clicked ? (
