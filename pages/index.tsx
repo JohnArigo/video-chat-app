@@ -16,9 +16,10 @@ export default function Home({ handleCredChange, handleLogin }: Props) {
   }, [roomName, userName, handleCredChange]);
 
   return (
-    <div className="w-screen h-screen flex justify-center items-center">
+    <div className="w-screen h-screen flex flex-col justify-center items-center">
+      {" "}
+      <h1 className="text-center mb-20 text-4xl">Video Chat App</h1>
       <form className="w-96 h-96 flex flex-col" onSubmit={handleLogin}>
-        <h1 className="text-center mb-5">Lets join a room!</h1>
         <input
           onChange={(e) => setUserName(e.target.value)}
           value={userName}
