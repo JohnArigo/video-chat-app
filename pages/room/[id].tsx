@@ -353,7 +353,7 @@ export default function Room({ userName, roomName }: Props) {
             setClicked={setClicked}
           />
         ) : (
-          <div className="sm:relative sm:bottom-auto bottom-48 fixed w-full h-48 sm:h-1/3 flex justify-end items-center">
+          <div className="sm:relative sm:bottom-auto bottom-20 fixed w-full h-48 sm:h-1/3 flex justify-end items-center">
             <video
               onClick={() => setClicked(true)}
               autoPlay
