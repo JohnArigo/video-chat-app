@@ -335,7 +335,7 @@ export default function Room({ userName, roomName }: Props) {
             autoPlay
             playsInline
             ref={partnerVideo}
-            className="sm:w-3/4 w-full h-full"
+            className="sm:w-3/4 w-screen h-screen flex items-center justify-center"
           />
         </div>
 
@@ -353,14 +353,14 @@ export default function Room({ userName, roomName }: Props) {
             setClicked={setClicked}
           />
         ) : (
-          <div className="w-full h-48 sm:h-1/3 flex justify-end items-center">
+          <div className="sm:relative sm:bottom-auto bottom-48 fixed w-full h-48 sm:h-1/3 flex justify-end items-center">
             <video
               onClick={() => setClicked(true)}
               autoPlay
               playsInline
               ref={userVideo}
               muted
-              className="w-36 sm:w-56 h-full sm:mr-5 rounded-lg"
+              className="w-36 sm:w-56 h-full mr-2 sm:mr-5 rounded-lg"
             />
           </div>
         )}
@@ -371,7 +371,7 @@ export default function Room({ userName, roomName }: Props) {
           muted
           className="w-36 sm:w-56 h-full"
         /> */}
-        <div className="w-full sm:w-96 mt-10 sm:mb-0 mb-20 sm:h-24 h-16 flex justify-between items-center rounded-lg bg-gray-100 bg-opacity-50">
+        <div className="sm:relative sm:bottom-auto fixed bottom-0 w-full sm:w-96 mt-10 sm:mb-0 mb-20 sm:h-24 h-16 flex justify-between items-center rounded-lg bg-gray-100 bg-opacity-50">
           <div className="w-1/2 flex justify-around items-center ml-2">
             <button
               className="rounded-xl p-5 mr-2 text-black hover:bg-white hover:bg-opacity-50"

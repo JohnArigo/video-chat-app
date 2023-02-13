@@ -10,10 +10,10 @@ export const ICE_SERVERS = {
     {
       urls: "stun:stun2.l.google.com:19302",
     },
-    {
-      urls: "turn:turn.anyfirewall.com:443?transport=tcp",
-      credential: "webrtc",
-      username: "webrtc",
-    },
+    // {
+    //   urls: "turn:turn.anyfirewall.com:443?transport=tcp",
+    //   credential: "webrtc",
+    //   username: "webrtc",
+    // },
   ],
 };
