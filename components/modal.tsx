@@ -1,5 +1,5 @@
 export const Modal = ({ Children, setClicked }: any) => {
-  console.log(Children);
+  //console.log(Children);
   return (
     <div
       onClick={() => setClicked(false)}

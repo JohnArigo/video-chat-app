@@ -136,7 +136,7 @@ export default function Room({ userName, roomName }: Props) {
         console.log(err);
       });
   };
-
+  //for host to initiate call
   const createPeerConnection = () => {
     // We create a RTC Peer Connection
     const connection = new RTCPeerConnection(ICE_SERVERS);
@@ -147,7 +147,7 @@ export default function Room({ userName, roomName }: Props) {
     connection.onicecandidateerror = (e) => console.log(e);
     return connection;
   };
-
+  //for host to initiate call
   const initiateCall = () => {
     if (host.current) {
       rtcConnection.current = createPeerConnection();
@@ -169,7 +169,7 @@ export default function Room({ userName, roomName }: Props) {
         });
     }
   };
-
+  //for host to handle ice candidate
   const handleReceivedOffer = (offer: RTCSessionDescriptionInit) => {
     rtcConnection.current = createPeerConnection();
     userStream.current?.getTracks().forEach((track) => {
@@ -188,19 +188,20 @@ export default function Room({ userName, roomName }: Props) {
         console.log(error);
       });
   };
+  //for remote user to handle answer
   const handleAnswerReceived = (answer: RTCSessionDescriptionInit) => {
     rtcConnection
       .current!.setRemoteDescription(answer)
       .catch((error) => console.log(error));
   };
-
+  //for host to handle ice candidate
   const handleICECandidateEvent = async (event: RTCPeerConnectionIceEvent) => {
     if (event.candidate) {
       // return sentToPusher('ice-candidate', event.candidate)
       channelRef.current?.trigger("client-ice-candidate", event.candidate);
     }
   };
-
+  //for remote user to handle ice candidate
   const handlerNewIceCandidateMsg = (incoming: RTCIceCandidate) => {
     // We cast the incoming candidate to RTCIceCandidate
     const candidate = new RTCIceCandidate(incoming);
@@ -217,6 +218,7 @@ export default function Room({ userName, roomName }: Props) {
     partnerVideo.current!.srcObject = event.streams[0]!;
   };
 
+  //for local user to handle audio/video toggle
   const switchMediaStream = (type: "video" | "audio", state: boolean) => {
     userStream.current?.getTracks().forEach((track) => {
       if (track.kind === type) {
@@ -224,7 +226,7 @@ export default function Room({ userName, roomName }: Props) {
       }
     });
   };
-
+  //for remote user to handle room exit
   const userExit = () => {
     host.current = true;
     if (partnerVideo.current?.srcObject) {
@@ -241,7 +243,7 @@ export default function Room({ userName, roomName }: Props) {
       rtcConnection.current = null;
     }
   };
-
+  //for local user to handle room exit
   const exitRoom = () => {
     if (userVideo.current?.srcObject) {
       (userVideo.current?.srcObject as MediaStream)
@@ -264,16 +266,21 @@ export default function Room({ userName, roomName }: Props) {
 
     router.push("/");
   };
-
+  //turn on/off mic
   const micSwitch = () => {
     switchMediaStream("audio", micActive);
     setMicActive((prev) => !prev);
   };
-  console.log(micActive);
+  //turn on/off camera
   const camSwitch = () => {
     switchMediaStream("video", cameraActive);
     setCameraActive((prev) => !prev);
   };
+
+  useEffect(() => {
+    partnerVideo?.current?.play();
+    userVideo?.current?.play();
+  }, []);
 
   return (
     <div className="w-screen h-screen bg-primary flex justify-center items-center">
