@@ -32,7 +32,7 @@ export default function Room({ userName, roomName }: Props) {
 
   const userVideo = useRef<HTMLVideoElement>(null);
   const partnerVideo = useRef<HTMLVideoElement>(null);
-  const partnerTwoVideo = useRef<HTMLVideoElement>(null);
+  //const partnerTwoVideo = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     pusherRef.current = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
@@ -281,7 +281,7 @@ export default function Room({ userName, roomName }: Props) {
   useEffect(() => {
     partnerVideo?.current?.play();
     userVideo?.current?.play();
-  }, [button]);
+  }, [userName, partnerVideo, userVideo, roomName]);
 
   return (
     <div className="w-screen h-screen bg-primary flex justify-center items-center">
