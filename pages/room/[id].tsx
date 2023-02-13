@@ -277,10 +277,11 @@ export default function Room({ userName, roomName }: Props) {
     setCameraActive((prev) => !prev);
   };
 
+  const [button, setButton] = useState(false);
   useEffect(() => {
     partnerVideo?.current?.play();
     userVideo?.current?.play();
-  }, [partnerVideo, userVideo]);
+  }, [button]);
 
   return (
     <div className="w-screen h-screen bg-primary flex justify-center items-center">
@@ -291,6 +292,12 @@ export default function Room({ userName, roomName }: Props) {
             ref={partnerVideo}
             className="sm:w-3/4 w-full h-full"
           />
+          <button
+            onClick={() => setButton((prevState) => !prevState)}
+            className="bg-red-500 w-14 h-10 rounded-lg shadow-md hover:bg-red-300"
+          >
+            Turn On Video
+          </button>
         </div>
 
         {clicked ? (
