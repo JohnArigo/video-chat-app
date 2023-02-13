@@ -318,7 +318,7 @@ export default function Room({ userName, roomName }: Props) {
   }, [button]);
 
   return (
-    <div className="w-screen h-screen bg-primary flex justify-center items-center">
+    <div className="w-screen h-screen bg-primary flex justify-center items-center overflow-y-clip">
       {hideModal && portSize?.width! < 425 ? (
         <div className="w-screen h-screen absolute z-50 bg-white bg-opacity-60 flex justify-center items-center">
           <button
