@@ -333,6 +333,7 @@ export default function Room({ userName, roomName }: Props) {
         <div className="sm:w-11/12 w-full sm:h-2/3 h-full flex justify-center items-center sm:mt-5">
           <video
             autoPlay
+            playsInline
             ref={partnerVideo}
             className="sm:w-3/4 w-full h-full"
           />
@@ -343,6 +344,7 @@ export default function Room({ userName, roomName }: Props) {
             Children={
               <video
                 autoPlay
+                playsInline
                 ref={userVideo}
                 muted
                 className="w-full sm:w-2/3 h-full"
@@ -355,9 +357,10 @@ export default function Room({ userName, roomName }: Props) {
             <video
               onClick={() => setClicked(true)}
               autoPlay
+              playsInline
               ref={userVideo}
               muted
-              className="w-36 sm:w-56 h-full"
+              className="w-36 sm:w-56 h-full sm:mr-5 rounded-lg"
             />
           </div>
         )}
