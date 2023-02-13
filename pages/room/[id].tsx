@@ -371,7 +371,7 @@ export default function Room({ userName, roomName }: Props) {
           muted
           className="w-36 sm:w-56 h-full"
         /> */}
-        <div className="sm:relative sm:bottom-auto fixed bottom-0 w-full sm:w-96 mt-10 sm:mb-0 mb-20 sm:h-24 h-16 flex justify-between items-center rounded-lg bg-gray-100 bg-opacity-50">
+        <div className="sm:relative sm:bottom-auto fixed bottom-0 w-full sm:w-96 mt-10 sm:mb-2 sm:h-24 h-16 flex justify-between items-center rounded-lg bg-gray-100 bg-opacity-50">
           <div className="w-1/2 flex justify-around items-center ml-2">
             <button
               className="rounded-xl p-5 mr-2 text-black hover:bg-white hover:bg-opacity-50"
