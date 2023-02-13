@@ -14,10 +14,14 @@ interface Props {
   userName: string;
   roomName: string;
 }
+type portType = {
+  height: number | undefined;
+  width: number | undefined;
+};
 
 export default function Room({ userName, roomName }: Props) {
-  const [micActive, setMicActive] = useState(true);
-  const [cameraActive, setCameraActive] = useState(true);
+  const [micActive, setMicActive] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
   const [clicked, setClicked] = useState(false);
   const router = useRouter();
 
@@ -33,6 +37,26 @@ export default function Room({ userName, roomName }: Props) {
   const userVideo = useRef<HTMLVideoElement>(null);
   const partnerVideo = useRef<HTMLVideoElement>(null);
   //const partnerTwoVideo = useRef<HTMLVideoElement>(null);
+
+  const [portSize, setPortSize] = useState<portType>({
+    width: 0,
+    height: 0,
+  });
+  //handles window resizing
+  const handleResize = () => {
+    if (typeof window !== "undefined") {
+      setPortSize({
+        height: window?.innerHeight,
+        width: window?.innerWidth,
+      });
+    }
+  };
+  //handles window resizing
+  useEffect(() => {
+    handleResize();
+    window?.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     pusherRef.current = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
@@ -278,13 +302,33 @@ export default function Room({ userName, roomName }: Props) {
   };
 
   const [button, setButton] = useState(false);
+  const [hideModal, setHideModal] = useState(true);
+
+  const handleModalClick = () => {
+    setHideModal(false);
+    setButton(true);
+  };
+  //for initial modal to activate periphrials and show video/audio
+  //needed due to safari mobile browser not initiating video/audio without user interaction
   useEffect(() => {
+    setMicActive(true);
+    setCameraActive(true);
     partnerVideo?.current?.play();
     userVideo?.current?.play();
-  }, [userName, partnerVideo, userVideo, roomName]);
+  }, [button]);
 
   return (
     <div className="w-screen h-screen bg-primary flex justify-center items-center">
+      {hideModal && portSize?.width! < 425 ? (
+        <div className="w-screen h-screen absolute z-50 bg-white bg-opacity-60 flex justify-center items-center">
+          <button
+            onClick={handleModalClick}
+            className="bg-green-500 w-24 h-10 rounded-xl shadow-lg hover:bg-green-700"
+          >
+            Join Call
+          </button>
+        </div>
+      ) : null}
       <div className="bg-secondary w-full h-full flex flex-col items-center">
         <div className="sm:w-11/12 w-full sm:h-2/3 h-full flex justify-center items-center sm:mt-5">
           <video
@@ -292,12 +336,6 @@ export default function Room({ userName, roomName }: Props) {
             ref={partnerVideo}
             className="sm:w-3/4 w-full h-full"
           />
-          <button
-            onClick={() => setButton((prevState) => !prevState)}
-            className="bg-red-500 w-14 h-10 rounded-lg shadow-md hover:bg-red-300"
-          >
-            Turn On Video
-          </button>
         </div>
 
         {clicked ? (
@@ -353,6 +391,7 @@ export default function Room({ userName, roomName }: Props) {
               )}
             </button>
           </div>
+
           <button
             className="mr-5 text-white bg-red-500 px-7 py-5 rounded-xl hover:bg-red-700"
             onClick={exitRoom}
