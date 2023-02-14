@@ -335,7 +335,7 @@ export default function Room({ userName, roomName }: Props) {
             autoPlay
             playsInline
             ref={partnerVideo}
-            className="sm:w-3/4 fixed w-full h-full flex items-center justify-center"
+            className="sm:w-3/4 fixed w-full h-full flex items-start justify-center"
           />
         </div>
 
